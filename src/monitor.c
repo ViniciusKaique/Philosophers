@@ -6,7 +6,7 @@
 /*   By: vinpache <vinpache@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/06 14:17:17 by vinpache          #+#    #+#             */
-/*   Updated: 2025/10/06 14:17:31 by vinpache         ###   ########.fr       */
+/*   Updated: 2025/10/09 16:28:13 by vinpache         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,9 @@ static int	check_meals_completed(t_config *conf)
 	if (meals_completed == conf->philo_count)
 	{
 		print_log(&conf->philosophers[0], "All philosophers are full");
+		pthread_mutex_lock(&conf->death_lock);
+		conf->is_dead = 1;
+		pthread_mutex_unlock(&conf->death_lock);
 		return (1);
 	}
 	return (0);
@@ -75,3 +78,4 @@ void	wait_for_completion(t_config *conf)
 		ft_usleep(1);
 	}
 }
+

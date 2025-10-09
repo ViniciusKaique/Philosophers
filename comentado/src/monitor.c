@@ -10,78 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philosophers.h"
-
-int	get_simulation_status(t_philo *p)
-{
-	int	status;
-
-	pthread_mutex_lock(&p->conf->death_lock);
-	status = p->conf->is_dead;
-	pthread_mutex_unlock(&p->conf->death_lock);
-	return (status);
-}
-
-static int	check_death(t_config *conf)
-{
-	int		i;
-	size_t	current_time;
-
-	i = -1;
-	while (++i < conf->philo_count)
-	{
-		if (get_simulation_status(&conf->philosophers[i]))
-			return (1);
-		current_time = get_time_ms();
-		if ((current_time - conf->philosophers[i].last_meal) > conf->t_die)
-		{
-			print_log(&conf->philosophers[i], DIE_MSG);
-			return (1);
-		}
-	}
-	return (0);
-}
-
-static int	check_meals_completed(t_config *conf)
-{
-	int	i;
-	int	meals_completed;
-
-	if (conf->times_to_eat == -1)
-		return (0);
-	meals_completed = 0;
-	i = -1;
-	while (++i < conf->philo_count)
-	{
-		if (conf->philosophers[i].eat_count >= conf->times_to_eat)
-			meals_completed++;
-	}
-	if (meals_completed == conf->philo_count)
-	{
-		print_log(&conf->philosophers[0], "All philosophers are full");
-		return (1);
-	}
-	return (0);
-}
-
-void	wait_for_completion(t_config *conf)
-{
-	while (1)
-	{
-		if (check_death(conf))
-			break ;
-		if (check_meals_comple/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   monitor.c                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: vinpache <vinpache@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/06 14:17:17 by vinpache          #+#    #+#             */
-/*   Updated: 2025/10/06 14:17:31 by vinpache         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "philosophers.h" // Inclui o header principal do projeto, com structs e protótipos
 
 // Função que retorna o status atual da simulação (se algum filósofo morreu ou não)
@@ -117,28 +45,47 @@ static int	check_death(t_config *conf)
 	return (0); // Nenhum filósofo morreu ainda
 }
 
-// Função que verifica se todos os filósofos comeram a quantidade necessária
-static int	check_meals_completed(t_config *conf)
+/static int	check_meals_completed(t_config *conf)
 {
-	int	i;                // Índice do loop
-	int	meals_completed;  // Contador de filósofos que já comeram o suficiente
+	int	i;                 // Variável para percorrer os filósofos
+	int	meals_completed;   // Contador de filósofos que já comeram o número de vezes desejado
 
-	if (conf->times_to_eat == -1) // Se não há limite de refeições, retorna 0
+	// Se não há limite de refeições, não faz checagem, retorna 0
+	if (conf->times_to_eat == -1)
 		return (0);
 
-	meals_completed = 0;
-	i = -1;
-	while (++i < conf->philo_count) // Itera sobre todos os filósofos
+	meals_completed = 0;   // Inicializa o contador de refeições completas
+	i = -1;                // Inicializa o índice do loop
+
+	// Loop para verificar cada filósofo
+	while (++i < conf->philo_count)
 	{
-		if (conf->philosophers[i].eat_count >= conf->times_to_eat) // Verifica se cada filósofo comeu o suficiente
-			meals_completed++; // Incrementa o contador
+		// Se o filósofo já comeu pelo menos 'times_to_eat' vezes
+		if (conf->philosophers[i].eat_count >= conf->times_to_eat)
+			meals_completed++;  // Incrementa o contador
 	}
-	if (meals_completed == conf->philo_count) // Se todos comeram o necessário
+
+	// Se todos os filósofos comeram a quantidade desejada
+	if (meals_completed == conf->philo_count)
 	{
-		print_log(&conf->philosophers[0], "All philosophers are full"); // Imprime log de todos satisfeitos
-		return (1); // Retorna 1 para indicar que simulação deve parar
+		// Imprime a mensagem de todos os filósofos satisfeitos
+		print_log(&conf->philosophers[0], "All philosophers are full");
+
+		// Bloqueia o mutex para alterar a variável de controle da simulação
+		pthread_mutex_lock(&conf->death_lock);
+
+		// Marca a simulação como finalizada para que os threads saibam que devem parar
+		conf->is_dead = 1;
+
+		// Desbloqueia o mutex após alterar a variável
+		pthread_mutex_unlock(&conf->death_lock);
+
+		// Retorna 1 indicando que a condição de término foi atingida
+		return (1);
 	}
-	return (0); // Ainda há filósofos que não comeram o suficiente
+
+	// Retorna 0 se nem todos os filósofos completaram as refeições
+	return (0);
 }
 
 // Função principal de monitoramento que espera até a simulação terminar
@@ -153,8 +100,4 @@ void	wait_for_completion(t_config *conf)
 		ft_usleep(1); // Pequeno delay para não sobrecarregar o CPU (1 ms)
 	}
 }
-ted(conf))
-			break ;
-		ft_usleep(1);
-	}
-}
+
