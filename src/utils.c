@@ -6,7 +6,7 @@
 /*   By: vinpache <vinpache@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/06 14:18:03 by vinpache          #+#    #+#             */
-/*   Updated: 2025/10/06 14:18:21 by vinpache         ###   ########.fr       */
+/*   Updated: 2025/10/10 12:24:09 by vinpache         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,12 +70,19 @@ void	free_all(t_config *conf)
 
 void	print_log(t_philo *p, char *msg)
 {
+	const char	*die_msg;
+	int			i;
+
 	pthread_mutex_lock(&p->conf->write_lock);
 	pthread_mutex_lock(&p->conf->death_lock);
 	if (!p->conf->is_dead)
 	{
 		printf("%lu %d %s\n", get_time_ms() - p->conf->start_time, p->id, msg);
-		if (strcmp(msg, DIE_MSG) == 0)
+		die_msg = DIE_MSG;
+		i = 0;
+		while (die_msg[i] && msg[i] && die_msg[i] == msg[i])
+			i++;
+		if (die_msg[i] == '\0' && msg[i] == '\0')
 			p->conf->is_dead = 1;
 	}
 	pthread_mutex_unlock(&p->conf->death_lock);

@@ -6,7 +6,7 @@
 /*   By: vinpache <vinpache@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/06 14:17:17 by vinpache          #+#    #+#             */
-/*   Updated: 2025/10/09 16:28:13 by vinpache         ###   ########.fr       */
+/*   Updated: 2025/10/10 13:12:20 by vinpache         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,14 +30,15 @@ static int	check_death(t_config *conf)
 	i = -1;
 	while (++i < conf->philo_count)
 	{
-		if (get_simulation_status(&conf->philosophers[i]))
-			return (1);
+		pthread_mutex_lock(&conf->philosophers[i].philo_lock);
 		current_time = get_time_ms();
 		if ((current_time - conf->philosophers[i].last_meal) > conf->t_die)
 		{
 			print_log(&conf->philosophers[i], DIE_MSG);
+			pthread_mutex_unlock(&conf->philosophers[i].philo_lock);
 			return (1);
 		}
+		pthread_mutex_unlock(&conf->philosophers[i].philo_lock);
 	}
 	return (0);
 }
@@ -53,8 +54,10 @@ static int	check_meals_completed(t_config *conf)
 	i = -1;
 	while (++i < conf->philo_count)
 	{
-		if (conf->philosophers[i].eat_count >= conf->times_to_eat)
+		pthread_mutex_lock(&conf->philosophers[i].philo_lock);
+		if ((current_time - conf->philosophers[i].last_meal) >= conf->t_die)
 			meals_completed++;
+		pthread_mutex_unlock(&conf->philosophers[i].philo_lock);
 	}
 	if (meals_completed == conf->philo_count)
 	{
@@ -71,11 +74,10 @@ void	wait_for_completion(t_config *conf)
 {
 	while (1)
 	{
-		if (check_death(conf))
-			break ;
 		if (check_meals_completed(conf))
 			break ;
-		ft_usleep(1);
+		if (check_death(conf))
+			break ;
+		ft_usleep(2);
 	}
 }
-

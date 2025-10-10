@@ -6,7 +6,7 @@
 /*   By: vinpache <vinpache@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/06 14:06:54 by vinpache          #+#    #+#             */
-/*   Updated: 2025/10/06 14:27:07 by vinpache         ###   ########.fr       */
+/*   Updated: 2025/10/10 12:53:33 by vinpache         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ typedef struct s_philosopher
 	pthread_mutex_t			*left_fork;
 	pthread_mutex_t			*right_fork;
 	pthread_t				tid;
+	pthread_mutex_t			philo_lock;
 }							t_philo;
 
 int							init_all(t_config *conf, int ac, char **av);
